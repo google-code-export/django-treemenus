@@ -1,10 +1,8 @@
-#List of backward incompatible changes.
-
 = Changes made after 0.5 =
 
 No change needs to be done in the database. Everything will work as before, but you need to do the following changes in your code.
 
-==Template directory==
+== 1. Template directory ==
 
 No need to declare the template directory any more, so remove it from your settings file:
 
@@ -15,7 +13,7 @@ TEMPLATE_DIRS = (
 )
 }}}
 
-==URLConf==
+== 2. URLConf ==
 
 No need to declare the admin url for the `treemenus` application, so remove it from your URLConf:
 
@@ -27,13 +25,13 @@ urlpatterns = patterns('',
 )
 }}}
 
-==Extension system==
+== 3. Extension system ==
 
 If you were not using the extension system, then you're done with the incompatible changes.
 
 The extension system has changed quite a lot. Although your database will remain untouched, some changes need to be done.
 
-===Extension settings===
+=== 3.a. Extension settings ===
 
 You need to remove the following lines from your settings, as they're not used any more:
 
@@ -42,7 +40,7 @@ TREE_MENU_ITEM_EXTENSION_MODEL = 'menu_extension.models.MenuItemExtension'
 TREE_MENU_ITEM_EXTENSION_FORM = 'menu_extension.forms.MenuItemExtensionForm'
 }}}
 
-===Extension model definition===
+=== 3.b. Extension model definition ===
 
 Instead of a `ForeignKey` you now need to use a `OneToOneField`:
 
@@ -62,7 +60,7 @@ class MenuItemExtension(models.Model):
 Don't forget to set the `related_name` parameter, preferably to `"extension"`.
 }}}
 
-===`get_extension` method===
+=== 3.c. `get_extension` method ===
 
 As a result of the model change above, the `get_extension` method does not exist any more. Instead use the attribute which is set in the `related_name` parameter, preferably to `"extension"`. For example, in you templates:
 
@@ -72,7 +70,7 @@ As a result of the model change above, the `get_extension` method does not exist
 {% endif %}
 }}}
 
-===Extension admin declaration===
+=== 3.d. Extension admin declaration ===
 
 Now extension models are manage with inline forms. To declare your extension model in the admin, you therefore need to proceed as follows, in your project's main `admin.py`:
 
