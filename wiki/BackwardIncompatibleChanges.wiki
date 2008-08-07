@@ -1,6 +1,8 @@
 = Changes made after 0.5 =
 
-No change needs to be done in the database. Everything will work as before, but you need to do the following changes in your code.
+If you were not using the extension system, then the changes are pretty simple (see 1. and 2.). If you were, it's a little more complex but still easy to overcome (see 3.).
+
+In any case, no change needs to be done in the database. Everything will work as before. The below changes only apply to your code.
 
 == 1. Template directory ==
 
