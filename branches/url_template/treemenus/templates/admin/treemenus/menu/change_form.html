@@ -22,8 +22,7 @@
 		<thead>
 			<tr>
 				<th>{% trans "Caption" %}</th>
-				<th>{% trans "Url" %}</th>
-				<th>{% trans "Named url" %}</th>
+				<th>{% trans "URL Template" %}</th>
 				<th colspan="2">{% trans "Move" %}</th>
 			</tr>
 		</thead>
@@ -40,11 +39,8 @@
 					<td width="35%">
 						<a href="items/{{ menu_item.pk }}/">{{ menu_item.caption_with_spacer|safe }}</a>
 					</td>
-					<td width="25%">
-						{{ menu_item.url }}
-					</td>
-					<td width="25%">
-						{{ menu_item.named_url }}
+					<td width="50%">
+						{{ menu_item.url_template|truncatewords:12 }}
 					</td>
 				{% endif %}
 				

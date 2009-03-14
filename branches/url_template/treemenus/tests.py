@@ -36,7 +36,7 @@ class TreemenusTestCase(TestCase):
         menu_item_data = {
             "parent": menu.root_item.pk,
             "caption": u"something0987456987546",
-            "url": u"http://www.example.com",
+            "url_template": u"http://www.example.com",
             "_continue": ''
         }
         response = self.client.post('/test_treemenus_admin/treemenus/menu/%s/items/add/' % menu.pk, menu_item_data)
@@ -47,7 +47,7 @@ class TreemenusTestCase(TestCase):
         menu_item_data = {
             "parent": menu.root_item.pk,
             "caption": u"something",
-            "url": u"http://www.example.com",
+            "url_template": u"http://www.example.com",
             "_addanother": ''
         }
         response = self.client.post('/test_treemenus_admin/treemenus/menu/%s/items/add/' % menu.pk, menu_item_data)
@@ -65,7 +65,7 @@ class TreemenusTestCase(TestCase):
         menu_item_data = {
             "parent": menu.root_item.pk,
             "caption": u"blah",
-            "url": u"http://www.example.com"
+            "url_template": u"http://www.example.com"
         }
         response = self.client.post('/test_treemenus_admin/treemenus/menu/%s/items/add/' % menu.pk, menu_item_data)
         self.assertRedirects(response, '/test_treemenus_admin/treemenus/menu/%s/' % menu.pk)
@@ -89,7 +89,7 @@ class TreemenusTestCase(TestCase):
         menu_item_data = {
             "parent": menu.root_item.pk,
             "caption": u"blah",
-            "url": u"http://www.example.com"
+            "url_template": u"http://www.example.com"
         }
         response = self.client.post('/test_treemenus_admin/treemenus/menu/%s/items/add/' % menu.pk, menu_item_data)
         self.assertRedirects(response, '/test_treemenus_admin/treemenus/menu/%s/' % menu.pk)
@@ -120,7 +120,7 @@ class TreemenusTestCase(TestCase):
         menu_item_data = {
             "parent": menu.root_item.pk,
             "caption": u"blah",
-            "url": u"http://www.example.com"
+            "url_template": u"http://www.example.com"
         }
         response = self.client.post('/test_treemenus_admin/treemenus/menu/%s/items/add/' % menu.pk, menu_item_data)
         self.assertRedirects(response, '/test_treemenus_admin/treemenus/menu/%s/' % menu.pk)
@@ -132,7 +132,7 @@ class TreemenusTestCase(TestCase):
         menu_item_data = {
             "parent": menu.root_item.pk,
             "caption": u"something else",
-            "url": u"http://www.example.com"
+            "url_template": u"http://www.example.com"
         }
         response = self.client.post('/test_treemenus_admin/treemenus/menu/%s/items/%s/' % (menu.pk, menu_item.pk), menu_item_data)
         self.assertRedirects(response, '/test_treemenus_admin/treemenus/menu/%s/' % menu.pk)
@@ -145,7 +145,7 @@ class TreemenusTestCase(TestCase):
         menu_item_data = {
             "parent": menu.root_item.pk,
             "caption": u"something else",
-            "url": u"http://www.example.com",
+            "url_template": u"http://www.example.com",
             "_continue": ''
         }
         response = self.client.post('/test_treemenus_admin/treemenus/menu/%s/items/%s/' % (menu.pk, menu_item.pk), menu_item_data)
@@ -155,7 +155,7 @@ class TreemenusTestCase(TestCase):
         menu_item_data = {
             "parent": menu.root_item.pk,
             "caption": u"something else",
-            "url": u"http://www.example.com",
+            "url_template": u"http://www.example.com",
             "_addanother": ''
         }
         response = self.client.post('/test_treemenus_admin/treemenus/menu/%s/items/%s/' % (menu.pk, menu_item.pk), menu_item_data)
