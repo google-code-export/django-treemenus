@@ -1,13 +1,5 @@
-from django.utils.safestring import mark_safe    
-from django.forms import ChoiceField
-
+from django.utils.safestring import mark_safe
 from treemenus.models import MenuItem
-
-class MenuItemChoiceField(ChoiceField):
-    ''' Custom field to display the list of items in a tree manner '''
-    def clean(self, value):
-        return MenuItem.objects.get(pk=value)
-
 
 def move_item(menu_item, vector):
     ''' Helper function to move and item up or down in the database '''
@@ -18,9 +10,6 @@ def move_item(menu_item, vector):
     menu_item.rank = new_rank
     menu_item.save()
     swapping_sibling.save()
-
-
-
 
 def move_item_or_clean_ranks(menu_item, vector):
     ''' Helper function to move and item up or down in the database.

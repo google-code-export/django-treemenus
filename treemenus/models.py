@@ -1,27 +1,23 @@
 from itertools import chain
 
 from django.db import models
-from django.utils.translation import ugettext_lazy
-from django.utils.translation import ugettext as _
-
-
-
-
-
+from django.utils.translation import ugettext
+from django.utils.translation import ugettext_lazy as _
+from django.template import Template
+from decimal import Context
 
 class MenuItem(models.Model):
-    parent = models.ForeignKey('self', verbose_name=ugettext_lazy('Parent'), null=True, blank=True)
-    caption = models.CharField(ugettext_lazy('Caption'), max_length=50)
-    url = models.CharField(ugettext_lazy('URL'), max_length=200, blank=True)
-    named_url = models.CharField(ugettext_lazy('Named URL'), max_length=200, blank=True)
-    level = models.IntegerField(ugettext_lazy('Level'), default=0, editable=False)
-    rank = models.IntegerField(ugettext_lazy('Rank'), default=0, editable=False)
-    menu = models.ForeignKey('Menu', related_name='contained_items', verbose_name=ugettext_lazy('Menu'), null=True, blank=True, editable=False)
+    parent = models.ForeignKey('self', verbose_name=_('Parent'), null=True, blank=True)
+    caption = models.CharField(_('Caption'), max_length=50, help_text=_("The name of the menu item"))
+    url_template = models.TextField(_('URL Template'), null=True, blank=True, help_text=_("Define your URL with the django template language, eg '{% url blog \"awesome\" %}'. Your links can be hardcoded, or calculated, or a combination thereof."))
+    level = models.IntegerField(_('Level'), default=0, editable=False)
+    rank = models.IntegerField(_('Rank'), default=0, editable=False)
+    menu = models.ForeignKey('Menu', related_name='contained_items', verbose_name=_('Menu'), null=True, blank=True, editable=False)
     
     def __unicode__(self):
         return self.caption
-    
-    def save(self, force_insert=False, force_update=False):
+        
+    def save(self, *args, **kwargs):
         from treemenus.utils import clean_ranks
 
         # Calculate level
@@ -39,11 +35,11 @@ class MenuItem(models.Model):
                 if new_parent:
                     clean_ranks(new_parent.children()) # Clean ranks for new siblings
                     self.rank = new_parent.children().count()
-                super(MenuItem, self).save(force_insert, force_update) # Save menu item in DB. It has now officially changed parent.
+                super(MenuItem, self).save(*args, **kwargs) # Save menu item in DB. It has now officially changed parent.
                 if old_parent:
                     clean_ranks(old_parent.children()) # Clean ranks for old siblings
             else:
-                super(MenuItem, self).save(force_insert, force_update) # Save menu item in DB
+                super(MenuItem, self).save(*args, **kwargs) # Save menu item in DB
         
         else: # Saving the menu item for the first time (i.e creating the object)
             if not self.has_siblings():
@@ -53,14 +49,12 @@ class MenuItem(models.Model):
                 # Has siblings - initial rank is highest sibling rank plus 1.
                 siblings = self.siblings().order_by('-rank')
                 self.rank = siblings[0].rank + 1
-            super(MenuItem, self).save(force_insert, force_update)
+            super(MenuItem, self).save(*args, **kwargs)
        
         # If level has changed, force children to refresh their own level
         if old_level != self.level:
             for child in self.children():
                 child.save() # Just saving is enough, it'll refresh its level correctly.
-    
-
     
     def delete(self):
         from treemenus.utils import clean_ranks
@@ -69,12 +63,10 @@ class MenuItem(models.Model):
         if old_parent:
             clean_ranks(old_parent.children())
             
-    def caption_with_spacer(self):
-        spacer = ''
-        for i in range(0, self.level):
-            spacer += u'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+    def caption_with_spacer(self): 
+        spacer = u'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' * self.level
         if self.level > 0:
-            spacer += u'|-&nbsp;'
+            spacer += u'&#x2517;&nbsp;' # tree symbol
         return spacer + self.caption
     
     def get_flattened(self):
@@ -116,12 +108,12 @@ class MenuItem(models.Model):
 
 
 class Menu(models.Model):
-    name = models.CharField(ugettext_lazy('Name'), max_length=50)
-    root_item = models.ForeignKey(MenuItem, related_name='is_root_item_of', verbose_name=ugettext_lazy('Root Item'), null=True, blank=True, editable=False)
+    name = models.CharField(_('Name'), max_length=50)
+    root_item = models.ForeignKey(MenuItem, related_name='is_root_item_of', verbose_name=_('Root Item'), null=True, blank=True, editable=False)
+
     def save(self, force_insert=False, force_update=False):
         if not self.root_item:
-            root_item = MenuItem()
-            root_item.caption = _('Root')
+            root_item = MenuItem(caption=ugettext('Root')) #cannot be lazy
             if not self.pk: # If creating a new object (i.e does not have a pk yet)
                 super(Menu, self).save(force_insert, force_update) # Save, so that it gets a pk
                 force_insert = False
