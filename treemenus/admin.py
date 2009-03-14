@@ -1,9 +1,6 @@
 import re
-from django.utils.functional import wraps
 from django.contrib import admin
-from django.conf import settings
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.contrib.admin.util import unquote
 from django.utils.translation import ugettext as _
 from django.utils.encoding import force_unicode
@@ -28,7 +25,7 @@ class MenuItemAdmin(admin.ModelAdmin):
     def delete_view(self, request, object_id, extra_context=None):
         if request.method == 'POST': # The user has already confirmed the deletion.
             # Delete and return to menu page
-            ignored_response = super(MenuItemAdmin, self).delete_view(request, object_id, extra_context)
+            super(MenuItemAdmin, self).delete_view(request, object_id, extra_context)
             return HttpResponseRedirect("../../../")
         else:
             # Show confirmation page
@@ -67,6 +64,7 @@ class MenuItemAdmin(admin.ModelAdmin):
         return form
 
 class MenuAdmin(admin.ModelAdmin):
+    menu_item_class = MenuItem
     menu_item_admin_class = MenuItemAdmin
     
     def __call__(self, request, url):
@@ -125,30 +123,30 @@ class MenuAdmin(admin.ModelAdmin):
     def add_menu_item(self, request, menu_pk):
         ''' Custom view '''
         menu = self.get_object_with_change_permissions(request, Menu, menu_pk)
-        menuitem_admin = self.menu_item_admin_class(MenuItem, self.admin_site, menu)
+        menuitem_admin = self.menu_item_admin_class(self.menu_item_class, self.admin_site, menu)
         return menuitem_admin.add_view(request, extra_context={ 'menu': menu })
 
     def edit_menu_item(self, request, menu_pk, menu_item_pk):
         ''' Custom view '''
         menu = self.get_object_with_change_permissions(request, Menu, menu_pk)
-        menu_item_admin = self.menu_item_admin_class(MenuItem, self.admin_site, menu)
+        menu_item_admin = self.menu_item_admin_class(self.menu_item_class, self.admin_site, menu)
         return menu_item_admin.change_view(request, menu_item_pk, extra_context={ 'menu': menu })
 
     def delete_menu_item(self, request, menu_pk, menu_item_pk):
         ''' Custom view '''
         menu = self.get_object_with_change_permissions(request, Menu, menu_pk)
-        menu_item_admin = self.menu_item_admin_class(MenuItem, self.admin_site, menu)
+        menu_item_admin = self.menu_item_admin_class(self.menu_item_class, self.admin_site, menu)
         return menu_item_admin.delete_view(request, menu_item_pk, extra_context={ 'menu': menu })
 
     def history_menu_item(self, request, menu_pk, menu_item_pk):
         ''' Custom view '''
         menu = self.get_object_with_change_permissions(request, Menu, menu_pk)
-        menu_item_admin = self.menu_item_admin_class(MenuItem, self.admin_site, menu)
+        menu_item_admin = self.menu_item_admin_class(self.menu_item_class, self.admin_site, menu)
         return menu_item_admin.history_view(request, menu_item_pk, extra_context={ 'menu': menu })
 
     def move_down_item(self, request, menu_pk, menu_item_pk):
         menu = self.get_object_with_change_permissions(request, Menu, menu_pk)
-        menu_item = self.get_object_with_change_permissions(request, MenuItem, menu_item_pk)
+        menu_item = self.get_object_with_change_permissions(request, self.menu_item_class, menu_item_pk)
         
         if menu_item.rank < menu_item.siblings().count():
             move_item_or_clean_ranks(menu_item, 1)
@@ -160,7 +158,7 @@ class MenuAdmin(admin.ModelAdmin):
     
     def move_up_item(self, request, menu_pk, menu_item_pk):
         menu = self.get_object_with_change_permissions(request, Menu, menu_pk)
-        menu_item = self.get_object_with_change_permissions(request, MenuItem, menu_item_pk)
+        menu_item = self.get_object_with_change_permissions(request, self.menu_item_class, menu_item_pk)
         
         if menu_item.rank > 0:
             move_item_or_clean_ranks(menu_item, -1)

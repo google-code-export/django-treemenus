@@ -3,8 +3,7 @@ from itertools import chain
 from django.db import models
 from django.utils.translation import ugettext
 from django.utils.translation import ugettext_lazy as _
-from django.template import Template
-from decimal import Context
+from django.db.models.related import RelatedObject
 
 class MenuItem(models.Model):
     parent = models.ForeignKey('self', verbose_name=_('Parent'), null=True, blank=True)
@@ -13,6 +12,20 @@ class MenuItem(models.Model):
     level = models.IntegerField(_('Level'), default=0, editable=False)
     rank = models.IntegerField(_('Rank'), default=0, editable=False)
     menu = models.ForeignKey('Menu', related_name='contained_items', verbose_name=_('Menu'), null=True, blank=True, editable=False)
+    
+    def as_subclass(self):
+        """
+        Looks through all related objects, and returns the first subclass it finds (on the assumption that there is only one)
+        """
+        related = self._meta.get_all_related_objects()
+        
+        for i in related:
+            if issubclass(i.model, type(self)):
+                if not i.model is type(self):
+                    #it's a subclass
+                    return getattr(self, i.get_accessor_name())
+        #none found, just return self
+        return self
     
     def __unicode__(self):
         return self.caption
@@ -77,7 +90,7 @@ class MenuItem(models.Model):
     
     def siblings(self):
         if not self.parent:
-            return MenuItem.objects.none()
+            return type(self).objects.none()
         else:
             if not self.pk: # If menu item not yet been saved in DB (i.e does not have a pk yet)
                 return self.parent.children()
@@ -93,7 +106,7 @@ class MenuItem(models.Model):
         return self.siblings().count() > 0
     
     def children(self):
-        _children = MenuItem.objects.filter(parent=self).order_by('rank',)
+        _children = type(self).objects.filter(parent=self).order_by('rank',)
         for child in _children:
             child.parent = self # Hack to avoid unnecessary DB queries further down the track.
         return _children
@@ -129,6 +142,9 @@ class Menu(models.Model):
         
     def __unicode__(self):
         return self.name
+    
+    def root(self):
+        return self.root_item.as_subclass()
     
     class Meta:
         verbose_name = _('Menu')
